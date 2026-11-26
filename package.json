@@ -1,0 +1,44 @@
+{
+  "name": "@plagnito/metis",
+  "version": "0.1.0",
+  "description": "Métis chez soi : serveur de recherche et de collaboration pour assistants IA (documents, graphiques, carnet, projets) et son serveur MCP. Extraction en cours depuis Atlas.",
+  "license": "AGPL-3.0-only",
+  "author": "Plagnito",
+  "homepage": "https://github.com/Plagnito/metis#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Plagnito/metis.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Plagnito/metis/issues"
+  },
+  "keywords": [
+    "metis",
+    "mcp",
+    "model-context-protocol",
+    "self-hosted",
+    "research",
+    "ai-agents"
+  ],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "type": "commonjs",
+  "exports": {
+    "./host": "./lib/host.js",
+    "./defaut/sqlite-context": "./lib/defaut/sqlite-context.js",
+    "./modules/*": "./lib/modules/*.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
