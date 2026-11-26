@@ -90,4 +90,11 @@ ok('les modules du premier lot se chargent et exposent leur API', () => {
   }
 });
 
+ok('fournit() dit si une entrée facultative est là, sans la résoudre', () => {
+  assert.equal(host.fournit('mcp'), false);
+  assert.equal(host.fournit('selftest'), false);
+  assert.equal(host.fournit('db'), true);
+  assert.throws(() => host.fournit('inventee'), /inconnue/);
+});
+
 console.log(`host : ${n} vérifications réussies`);

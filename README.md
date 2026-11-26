@@ -36,6 +36,15 @@ vous.
 | `metiscarnet` | Carnet des petites choses à faire : à faire, en cours, terminé, archivage automatique. |
 | `metisarchitecture`, `metisbatch` | Registre transversal (requêtes, audit, graphe, autorités) et lots atomiques prévisualisés puis validés. |
 | `metisexperts` | Registre des experts, pools et compétences. Requis par le registre transversal ; ne fera pas partie de l'interface de la première version autonome. |
+| `metisresearch` | Research Fabric : recherche transversale sous contrôle d'accès, paquets de contexte, export, vue d'ensemble. |
+| `metiscollaboration` | Agents, éléments de travail, passations et revues entre agents. |
+| `metisscience` | Sources, affirmations, preuves, décisions, jeux de données, protocoles et exécutions. |
+| `metiscontinuity` | Sessions, notes de recherche, abonnements aux changements, diagnostics du MCP. |
+| `metisprojects`, `metisdevelopment` | Projets, tâches, jalons, et reprise de développement (contexte, checkpoints, preuves, adaptateurs Codex / Claude / OpenCode). |
+| `metis-access-fence`, `metis-reading`, `metis-app-permissions` | Droits de lecture calculés à chaque requête, lecture paginée, permissions par application cliente. |
+| `metisnexus` | Canaux et messages entre agents. Requis par le contrôle d'accès ; hors de l'interface de la première version autonome. |
+| `web/*-tools` | Les définitions d'outils MCP de ces domaines (schémas d'entrée, annotations). |
+| `tools/metis-context/bridge.cjs` | Pont portable côté client, copié dans le dépôt de travail (`.metis/bridge.cjs`). |
 
 ## L'hôte
 
@@ -63,8 +72,12 @@ Entrées facultatives :
 | `rendu()` | `rendre(markdown)`, `ancre(titre)`, `echapper(texte)` : rendu Markdown des documents. |
 | `graines` | Dossier de contenu semé au démarrage (plans `.md`, `glossaire.json`, `experts.json`). Absent : l'instance démarre vide. |
 | `depotsConnus` | Noms de dépôts proposés dans le carnet. Ce sont des données de l'instance. |
+| `mcp()` | `outils(peutEcrire)` : le catalogue MCP servi, pour les diagnostics. Absent : liste vide. |
+| `selftest()` | `summary()` : rapport de qualification isolée de l'hôte. Absent : « unavailable ». |
 
-Un module qui a besoin d'une entrée absente échoue en le disant.
+Un module qui a besoin d'une entrée absente échoue en le disant. Les modules de recherche lisent aussi
+leurs interrupteurs dans l'environnement (`METIS_RESEARCH_ENABLED`, `METIS_COLLAB_ENABLED`,
+`METIS_SCIENCE_ENABLED`, `METIS_CONTINUITY_ENABLED`, `METIS_CONTEXT_ENABLED`, `METIS_AUDIT_ENABLED`, à `1`).
 Les fonctions SQL `atlas_actor_id`, `atlas_client_id` et `atlas_fold` gardent leur nom historique,
 parce que des bases existantes ont des déclencheurs qui les appellent.
 
