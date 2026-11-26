@@ -23,6 +23,12 @@ ok('une adresse publique avec paramètres est refusée', () => {
   assert.throws(() => host.configure({ db: () => ({}), sqliteContext: () => ctx, logger: () => console, publicUrl: 'https://exemple.org/?x=1' }), /publicUrl/);
 });
 
+ok('une liste de dépôts invalide est refusée', () => {
+  const ctx = require('../lib/defaut/sqlite-context');
+  assert.throws(() => host.configure({ db: () => ({}), sqliteContext: () => ctx, logger: () => console, depotsConnus: 'atlas' }), /depotsConnus/);
+  assert.equal(host.configured(), false);
+});
+
 let ouvertures = 0;
 const memoire = new DatabaseSync(':memory:');
 const contexte = require('../lib/defaut/sqlite-context');
@@ -49,6 +55,12 @@ ok('la base n’est résolue qu’une fois, au premier usage', () => {
 
 ok('une seconde configuration est refusée', () => {
   assert.throws(() => host.configure({ db: () => ({}), sqliteContext: () => contexte, logger: () => console }), /déjà configuré/);
+});
+
+ok('une entrée facultative absente échoue en le disant', () => {
+  assert.throws(() => require('../lib/core/comptes').compte(1), /ne fournit pas « comptes »/);
+  assert.equal(host.graines(), null);
+  assert.deepEqual([...host.depotsConnus()], []);
 });
 
 ok('publicUrl est rendue sans « / » final', () => {

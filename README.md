@@ -32,6 +32,10 @@ vous.
 | `metis-outcome-code` | Classement des codes de résultat. |
 | `metis-doctor`, `metis-observability` | Mesures de latence et d'erreurs des outils. |
 | `metis-research-journal` | Journal d'événements immuable, tenu par des déclencheurs SQLite. |
+| `metisdocs` | Publications versionnées (sections, notes, archives), glossaire des sigles et leurs fiches, graphiques insérés, droits de lecture et d'écriture. |
+| `metiscarnet` | Carnet des petites choses à faire : à faire, en cours, terminé, archivage automatique. |
+| `metisarchitecture`, `metisbatch` | Registre transversal (requêtes, audit, graphe, autorités) et lots atomiques prévisualisés puis validés. |
+| `metisexperts` | Registre des experts, pools et compétences. Requis par le registre transversal ; ne fera pas partie de l'interface de la première version autonome. |
 
 ## L'hôte
 
@@ -50,6 +54,17 @@ const G = require('@plagnito/metis/modules/graphiques');
 ```
 
 Chaque entrée est une fabrique, résolue au premier usage : charger un module pur n'ouvre aucune base.
+
+Entrées facultatives :
+
+| Entrée | Rôle |
+|---|---|
+| `comptes()` | `compte(id)`, `estProprietaire(compte)`, `compteParPseudo(pseudo)` : qui est connecté, qui possède l'instance. |
+| `rendu()` | `rendre(markdown)`, `ancre(titre)`, `echapper(texte)` : rendu Markdown des documents. |
+| `graines` | Dossier de contenu semé au démarrage (plans `.md`, `glossaire.json`, `experts.json`). Absent : l'instance démarre vide. |
+| `depotsConnus` | Noms de dépôts proposés dans le carnet. Ce sont des données de l'instance. |
+
+Un module qui a besoin d'une entrée absente échoue en le disant.
 Les fonctions SQL `atlas_actor_id`, `atlas_client_id` et `atlas_fold` gardent leur nom historique,
 parce que des bases existantes ont des déclencheurs qui les appellent.
 

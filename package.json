@@ -1,6 +1,6 @@
 {
   "name": "@plagnito/metis",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Métis chez soi : serveur de recherche et de collaboration pour assistants IA (documents, graphiques, carnet, projets) et son serveur MCP. Extraction en cours depuis Atlas.",
   "license": "AGPL-3.0-only",
   "author": "Plagnito",
