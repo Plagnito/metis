@@ -44,6 +44,7 @@ vous.
 | `metis-access-fence`, `metis-reading`, `metis-app-permissions` | Droits de lecture calculés à chaque requête, lecture paginée, permissions par application cliente. |
 | `metisnexus` | Canaux et messages entre agents. Requis par le contrôle d'accès ; hors de l'interface de la première version autonome. |
 | `web/*-tools` | Les définitions d'outils MCP de ces domaines (schémas d'entrée, annotations), dont le carnet. |
+| `metis-securite` (+ `-engine`, `-pilotage`, `-differential`, `-report`) | **Security Center** : inventaire des dépôts GitHub de l'instance (déclarés ou synchronisés), plan d'audit quotidien par un agent, failles, preuves, revalidations, contrôles préventifs. Aucun inventaire livré : une instance neuve démarre vide. Réservé au propriétaire. |
 | `web/metis-mcp` | Le **noyau du serveur MCP** : catalogue d'outils selon le rôle (`catalogueDe`), aiguillage d'un appel (`appeler`), consignes d'initialisation (`instructions`). Le transport HTTP et l'authentification restent chez l'hôte. |
 | `tools/metis-context/bridge.cjs` | Pont portable côté client, copié dans le dépôt de travail (`.metis/bridge.cjs`). |
 
@@ -74,6 +75,8 @@ Entrées facultatives :
 | `graines` | Dossier de contenu semé au démarrage (plans `.md`, `glossaire.json`, `experts.json`). Absent : l'instance démarre vide. |
 | `depotsConnus` | Noms de dépôts proposés dans le carnet. Ce sont des données de l'instance. |
 | `extensions()` | Outils MCP propres à l'hôte, branchés sur le noyau : `{ catalogue, outils(ecrivain, moi), noms, appeler(nom, a, moi, ctx), consignes(moi, disponibles) }`. |
+| `securite` | Réglages du Security Center : `proprietaires` (comptes GitHub admis), `organisations`, `famille(compte, nom)`, `libellesFamilles`, `importance` (JSON de classement), `jeton()` (défaut : `SECURITE_GITHUB_TOKEN` ou `GITHUB_TOKEN`). |
+| `commandes()` | `get(compte, id)` : registre d'exécutions où le Security Center vérifie un rapport avant planification. Absent : planification avec rapport exigé refusée. |
 | `selftest()` | `summary()` : rapport de qualification isolée de l'hôte. Absent : « unavailable ». |
 
 Un module qui a besoin d'une entrée absente échoue en le disant. Les modules de recherche lisent aussi
