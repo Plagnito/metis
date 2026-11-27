@@ -4,6 +4,8 @@
 // =============================================================================
 //  metis — Métis chez soi
 //    metis serve   [--port 4747] [--hote 127.0.0.1] [--donnees DOSSIER] [--url-publique URL] [--pseudo NOM]
+//    metis lien    [--pseudo NOM] [--donnees DOSSIER]     lien de connexion à usage unique (15 min)
+//    metis compte  --pseudo NOM [--donnees DOSSIER]       crée un compte membre
 //    metis jeton   [--client NOM] [--donnees DOSSIER]     crée un jeton d'accès (montré une fois)
 //    metis jetons  [--donnees DOSSIER]                    liste les jetons
 //    metis revoquer <id> [--donnees DOSSIER]              révoque un jeton
@@ -39,6 +41,8 @@ const AIDE = `Métis ${PAQUET.version} — recherche, projets et collaboration d
       --donnees DOSSIER  dossier des données (METIS_DONNEES, sinon ~/.metis)
       --url-publique URL adresse affichée dans les liens (sinon http://127.0.0.1:PORT)
       --pseudo NOM       pseudo du propriétaire, au premier lancement
+  metis lien       lien de connexion à l'interface (usage unique, 15 min ; --pseudo pour un membre)
+  metis compte     crée un compte membre (--pseudo NOM) ; donnez-lui l'accès dans l'interface
   metis jeton      crée un jeton d'accès pour un agent (--client claude-code)
   metis jetons     liste les jetons
   metis revoquer ID  révoque un jeton
@@ -81,6 +85,8 @@ async function serve(o) {
   const s = await demarrer(instance, { port, hote });
   const base = 'http://' + (hote === '0.0.0.0' ? '127.0.0.1' : hote) + ':' + s.port;
   process.stdout.write('Métis ' + PAQUET.version + ' — ' + base + '  (données : ' + instance.dossier + ')\n');
+  const proprio = instance.proprietaire();
+  process.stdout.write('  Interface (lien à usage unique, 15 min) : ' + base + '/connexion?code=' + instance.creerLien(proprio.id) + '\n');
   if (premier) process.stdout.write('\n  Premier lancement : propriétaire « ' + premier.pseudo + ' » créé.' + consignesConnexion(base + '/mcp', premier.jeton));
   const arreter = async () => { await s.fermer(); instance.fermer(); process.exit(0); };
   process.once('SIGINT', arreter);
@@ -92,6 +98,23 @@ function avecInstance(o, fn) {
   // Pas de verrou : ces commandes écrivent une ligne pendant qu'un serveur peut tourner (WAL).
   const instance = ouvrir({ dossier: o.donnees, verrou: false });
   try { return fn(instance); } finally { instance.fermer(); }
+}
+
+function lien(o) {
+  avecInstance(o, (instance) => {
+    const c = o.pseudo && o.pseudo !== true ? instance.comptes.compteParPseudo(String(o.pseudo)) : instance.proprietaire();
+    if (!c) throw new Error(o.pseudo ? 'Aucun compte « ' + o.pseudo + ' » (metis compte --pseudo pour le créer).' : 'Aucune instance ici : lancez d’abord « metis serve ».');
+    const base = (o.url && o.url !== true ? String(o.url) : 'http://127.0.0.1:' + (process.env.METIS_PORT || 4747)).replace(/\/+$/, '');
+    process.stdout.write('Lien de connexion pour ' + c.pseudo + ' (usage unique, 15 min) :\n  ' + base + '/connexion?code=' + instance.creerLien(c.id) + '\n');
+  });
+}
+
+function compte(o) {
+  if (!o.pseudo || o.pseudo === true) throw new Error('Usage : metis compte --pseudo NOM');
+  avecInstance(o, (instance) => {
+    const c = instance.creerCompte(String(o.pseudo), 'membre');
+    process.stdout.write('Compte « ' + c.pseudo + ' » créé. Donnez-lui l’accès dans l’interface (Gérer les accès), puis un lien : metis lien --pseudo ' + c.pseudo + '\n');
+  });
 }
 
 function jeton(o) {
@@ -123,6 +146,8 @@ async function principal(argv) {
   const commande = o._[0] || 'aide';
   switch (commande) {
     case 'serve': return serve(o);
+    case 'lien': return lien(o);
+    case 'compte': return compte(o);
     case 'jeton': return jeton(o);
     case 'jetons': return jetons(o);
     case 'revoquer': return revoquer(o);

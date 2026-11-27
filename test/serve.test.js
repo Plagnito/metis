@@ -49,12 +49,12 @@ let serveur;
     assert(fs.existsSync(path.join(dossier, 'metis.db')));
   });
 
-  await ok('/healthz et la page d’accueil répondent', async () => {
+  await ok('/healthz répond ; sans session, l’accueil mène à la connexion', async () => {
     const h = await (await fetch('http://127.0.0.1:' + serveur.port + '/healthz')).json();
     assert.equal(h.ok, true);
     const page = await (await fetch('http://127.0.0.1:' + serveur.port + '/')).text();
-    assert.match(page, /Métis/);
-    assert.match(page, /proprio/);
+    assert.match(page, /metis lien/);
+    assert.match(serveur.sortie, /Interface \(lien à usage unique, 15 min\) : http:\/\/127\.0\.0\.1:\d+\/connexion\?code=/);
   });
 
   await ok('sans jeton, le MCP refuse (401)', async () => {
@@ -104,6 +104,38 @@ let serveur;
     const rev = spawnSync(process.execPath, [BIN, 'revoquer', ligne.split('  ')[0]], { env, encoding: 'utf8' });
     assert.match(rev.stdout, /révoqué/);
     assert.equal((await rpc(serveur.port, j[1], 'ping')).statut, 401);
+  });
+
+  await ok('interface : connexion par lien à usage unique, pages, formulaires protégés', async () => {
+    const B = 'http://127.0.0.1:' + serveur.port;
+    const sansSession = await fetch(B + '/metis/carnet', { redirect: 'manual' });
+    assert.equal(sansSession.status, 302);
+    assert.match(sansSession.headers.get('location'), /^\/connexion\?suite=%2Fmetis%2Fcarnet/);
+    const code = /code=([A-Za-z0-9_-]{32})/.exec(spawnSync(process.execPath, [BIN, 'lien'], { env, encoding: 'utf8' }).stdout)[1];
+    const connexion = await fetch(B + '/connexion?code=' + code + '&suite=%2Fmetis%2Fcarnet', { redirect: 'manual' });
+    assert.equal(connexion.status, 303);
+    assert.equal(connexion.headers.get('location'), '/metis/carnet');
+    const cookie = connexion.headers.get('set-cookie').split(';')[0];
+    assert.match(connexion.headers.get('set-cookie'), /HttpOnly; SameSite=Lax/);
+    assert.equal((await fetch(B + '/connexion?code=' + code, { redirect: 'manual' })).status, 403, 'un lien ne sert qu’une fois');
+    const get = (u) => fetch(B + u, { headers: { Cookie: cookie }, redirect: 'manual' });
+    for (const u of ['/metis', '/metis/glossaire', '/metis/graphiques', '/metis/recherche?q=essai', '/metis/carnet', '/metis/projets', '/metis/acces']) {
+      const r = await get(u);
+      assert.equal(r.status, 200, u);
+      const html = await r.text();
+      assert.match(html, /<title>/, u);
+      assert.doesNotMatch(html, /plagnito/i, u);
+      assert.match(r.headers.get('content-security-policy'), /default-src 'none'/, u);
+    }
+    assert.match(await (await get('/metis/carnet')).text(), /Premier essai/);
+    const poster = (origine) => fetch(B + '/metis/carnet', { method: 'POST', redirect: 'manual', headers: { Cookie: cookie, 'Content-Type': 'application/x-www-form-urlencoded', ...(origine ? { Origin: origine } : {}) }, body: 'titre=Depuis+le+navigateur&type=idee' });
+    assert.equal((await poster('http://ailleurs.example')).status, 404, 'formulaire d’un autre site refusé');
+    assert.equal((await poster(null)).status, 404, 'formulaire sans origine refusé');
+    assert.equal((await poster(B)).status, 303);
+    assert.match(await (await get('/metis/carnet')).text(), /Depuis le navigateur/);
+    const sortie = await fetch(B + '/deconnexion', { method: 'POST', redirect: 'manual', headers: { Cookie: cookie, Origin: B } });
+    assert.equal(sortie.status, 303);
+    assert.equal((await get('/metis')).status, 302, 'la session fermée ne sert plus');
   });
 
   await ok('un second serveur sur la même base est refusé', () => {

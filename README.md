@@ -10,20 +10,22 @@ Les données restent **chez vous**. Plus tard, `plagnito.com` pourra servir de p
 consulter votre Métis à distance : il ne fera que relayer, l'appareil qui héberge Métis restera chez
 vous.
 
-> ⚠️ **État : première version autonome (0.6.0), pas encore publiée sur npm.** Le serveur, ses
-> comptes, ses jetons et le serveur MCP fonctionnent ; l'interface web complète et l'intégration
-> des issues GitHub arrivent dans les prochaines versions. En attendant la publication npm,
+> ⚠️ **État : version autonome 0.7.0, pas encore publiée sur npm.** Serveur, comptes, jetons,
+> serveur MCP et interface web (publications, glossaire, graphiques, recherche, carnet, projets,
+> accès) fonctionnent ; l'intégration des issues GitHub et le Security Center dans l'interface
+> arrivent dans les prochaines versions. En attendant la publication npm,
 > installez depuis une [Release GitHub](https://github.com/Plagnito/metis/releases).
 
 ## Démarrer
 
 ```sh
-npm install -g https://github.com/Plagnito/metis/releases/download/v0.6.0/plagnito-metis-0.6.0.tgz
+npm install -g https://github.com/Plagnito/metis/releases/download/v0.7.0/plagnito-metis-0.7.0.tgz
 metis serve
 ```
 
-Au premier lancement, Métis crée le compte propriétaire et affiche **un jeton d'accès, montré une
-seule fois**, avec la commande pour y brancher Claude Code :
+Au démarrage, Métis affiche un **lien pour ouvrir l'interface** dans le navigateur (usage unique,
+15 minutes). Au premier lancement, il crée aussi le compte propriétaire et affiche **un jeton d'accès,
+montré une seule fois**, avec la commande pour y brancher Claude Code :
 
 ```sh
 claude mcp add --transport http metis http://127.0.0.1:4747/mcp --header "Authorization: Bearer metis_…"
@@ -35,6 +37,8 @@ pont `metis mcp`, avec le jeton dans la variable `METIS_JETON`.
 | Commande | Rôle |
 |---|---|
 | `metis serve` | Démarre le serveur sur `http://127.0.0.1:4747` (`--port`, `--hote`, `--donnees`, `--url-publique`, `--pseudo`). |
+| `metis lien` | Lien de connexion à l'interface, à usage unique (15 min). `--pseudo NOM` pour un membre. Un lien est aussi affiché à chaque démarrage. |
+| `metis compte --pseudo NOM` | Crée un compte membre ; le propriétaire lui donne l'accès (lecteur ou éditeur) dans l'interface. |
 | `metis jeton --client NOM` | Crée un jeton pour un agent (`claude-code`, `codex`, `equipe-ci`…). Chaque client peut recevoir ses propres limites. |
 | `metis jetons` / `metis revoquer ID` | Liste les jetons, en révoque un : il ne passe plus dès l'appel suivant. |
 | `metis mcp` | Pont MCP stdio vers le serveur (`--url`, `--jeton` ou `METIS_JETON`). |
