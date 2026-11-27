@@ -1,7 +1,7 @@
 {
   "name": "@plagnito/metis",
-  "version": "0.5.0",
-  "description": "Métis chez soi : serveur de recherche et de collaboration pour assistants IA (documents, graphiques, carnet, projets) et son serveur MCP. Extraction en cours depuis Atlas.",
+  "version": "0.6.0",
+  "description": "Métis chez soi : serveur de recherche et de collaboration pour assistants IA (documents, graphiques, carnet, projets, Security Center) et son serveur MCP. « npx @plagnito/metis serve ».",
   "license": "AGPL-3.0-only",
   "author": "Plagnito",
   "homepage": "https://github.com/Plagnito/metis#readme",
@@ -30,9 +30,12 @@
     "./modules/*": "./lib/modules/*.js",
     "./web/*": "./lib/web/*.js",
     "./tools/*": "./tools/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./instance": "./lib/defaut/instance.js",
+    "./serveur": "./lib/serveur/http.js"
   },
   "files": [
+    "bin/",
     "lib/",
     "tools/",
     "LICENSE",
@@ -43,5 +46,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "bin": {
+    "metis": "bin/metis.js"
   }
 }

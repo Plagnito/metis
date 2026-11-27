@@ -10,14 +10,44 @@ Les données restent **chez vous**. Plus tard, `plagnito.com` pourra servir de p
 consulter votre Métis à distance : il ne fera que relayer, l'appareil qui héberge Métis restera chez
 vous.
 
-> ⚠️ **État : extraction en cours, pas encore installable.** Le code de Métis vit aujourd'hui dans
-> Atlas (la plateforme de plagnito.com) et déménage ici module par module. Tant que la commande
-> `metis serve` n'existe pas, ce paquet ne sert qu'à Atlas, qui le consomme comme dépendance.
+> ⚠️ **État : première version autonome (0.6.0), pas encore publiée sur npm.** Le serveur, ses
+> comptes, ses jetons et le serveur MCP fonctionnent ; l'interface web complète et l'intégration
+> des issues GitHub arrivent dans les prochaines versions. En attendant la publication npm,
+> installez depuis une [Release GitHub](https://github.com/Plagnito/metis/releases).
+
+## Démarrer
+
+```sh
+npm install -g https://github.com/Plagnito/metis/releases/download/v0.6.0/plagnito-metis-0.6.0.tgz
+metis serve
+```
+
+Au premier lancement, Métis crée le compte propriétaire et affiche **un jeton d'accès, montré une
+seule fois**, avec la commande pour y brancher Claude Code :
+
+```sh
+claude mcp add --transport http metis http://127.0.0.1:4747/mcp --header "Authorization: Bearer metis_…"
+```
+
+Les clients qui ne lancent que des serveurs MCP en stdio (Claude Desktop, Codex…) utilisent le
+pont `metis mcp`, avec le jeton dans la variable `METIS_JETON`.
+
+| Commande | Rôle |
+|---|---|
+| `metis serve` | Démarre le serveur sur `http://127.0.0.1:4747` (`--port`, `--hote`, `--donnees`, `--url-publique`, `--pseudo`). |
+| `metis jeton --client NOM` | Crée un jeton pour un agent (`claude-code`, `codex`, `equipe-ci`…). Chaque client peut recevoir ses propres limites. |
+| `metis jetons` / `metis revoquer ID` | Liste les jetons, en révoque un : il ne passe plus dès l'appel suivant. |
+| `metis mcp` | Pont MCP stdio vers le serveur (`--url`, `--jeton` ou `METIS_JETON`). |
+
+Les données vivent dans `~/.metis` (ou `METIS_DONNEES`) : une base SQLite, rien d'autre. Le serveur
+n'écoute que sur cette machine par défaut, et un second serveur sur la même base est refusé.
 
 ## Feuille de route
 
-1. **Extraction** (en cours) — les modules quittent Atlas, qui devient un hôte parmi d'autres.
-2. **Serveur autonome** — `npx @plagnito/metis serve`, base SQLite locale, interface web, `/mcp`.
+1. **Extraction** (faite) — les modules ont quitté Atlas, qui est devenu un hôte parmi d'autres.
+2. **Serveur autonome** (en cours) — `metis serve`, base locale, comptes et jetons, `/mcp` (fait) ;
+   interface web complète ; **issues GitHub** en tâches de projet, que les agents peuvent traiter
+   dans les limites que vous fixez pour chacun ; Security Center dans l'interface ; publication npm.
 3. **Passerelle** — `metis link` relie l'appareil à votre compte Atlas ; consultation à distance par
    `plagnito.com`, sans ouvrir de port.
 4. **Documentation et distribution.**
