@@ -1,6 +1,6 @@
 {
   "name": "@plagnito/metis",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Métis chez soi : serveur de recherche et de collaboration pour agents IA (documents, graphiques, glossaire, carnet, projets, issues GitHub, Security Center) avec interface web et serveur MCP. npx @plagnito/metis serve",
   "license": "AGPL-3.0-only",
   "author": "Plagnito",
