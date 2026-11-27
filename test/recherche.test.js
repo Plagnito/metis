@@ -2,7 +2,7 @@
 
 // Le nœud recherche / collaboration / projets / développement / continuité tourne SANS
 // Atlas : base en mémoire, comptes factices, adresse publique propre à l'instance, et un
-// hôte qui ne fournit NI catalogue MCP NI rapport de qualification. Les adresses rendues
+// hôte qui ne fournit ni extension MCP ni rapport de qualification. Les adresses rendues
 // doivent être celles de l'instance, jamais plagnito.com.
 for (const f of ['RESEARCH', 'COLLAB', 'CONTEXT', 'AUDIT', 'SCIENCE', 'CONTINUITY']) process.env['METIS_' + f + '_ENABLED'] = '1';
 const assert = require('node:assert/strict');
@@ -80,9 +80,10 @@ ok('l’adaptateur OpenCode vise le MCP de l’instance', () => {
   assert(a.setup_commands.every(c => !c.includes('plagnito')));
 });
 
-ok('sans catalogue MCP ni rapport de l’hôte, les diagnostics répondent quand même', () => {
-  const d = donnees(appeler(K, 'mcp_diagnostics', { limit: 50 }));
-  assert.deepEqual(d.items, []);
+ok('les diagnostics lisent le catalogue du paquet ; sans rapport de l’hôte, « unavailable »', () => {
+  const d = donnees(appeler(K, 'mcp_diagnostics', { limit: 100 }));
+  assert(d.items.length > 0);
+  assert(d.items.some(i => i.tool === 'mcp_diagnostics'));
   assert.equal(d.selftest.status, 'unavailable');
 });
 

@@ -43,7 +43,8 @@ vous.
 | `metisprojects`, `metisdevelopment` | Projets, tâches, jalons, et reprise de développement (contexte, checkpoints, preuves, adaptateurs Codex / Claude / OpenCode). |
 | `metis-access-fence`, `metis-reading`, `metis-app-permissions` | Droits de lecture calculés à chaque requête, lecture paginée, permissions par application cliente. |
 | `metisnexus` | Canaux et messages entre agents. Requis par le contrôle d'accès ; hors de l'interface de la première version autonome. |
-| `web/*-tools` | Les définitions d'outils MCP de ces domaines (schémas d'entrée, annotations). |
+| `web/*-tools` | Les définitions d'outils MCP de ces domaines (schémas d'entrée, annotations), dont le carnet. |
+| `web/metis-mcp` | Le **noyau du serveur MCP** : catalogue d'outils selon le rôle (`catalogueDe`), aiguillage d'un appel (`appeler`), consignes d'initialisation (`instructions`). Le transport HTTP et l'authentification restent chez l'hôte. |
 | `tools/metis-context/bridge.cjs` | Pont portable côté client, copié dans le dépôt de travail (`.metis/bridge.cjs`). |
 
 ## L'hôte
@@ -72,7 +73,7 @@ Entrées facultatives :
 | `rendu()` | `rendre(markdown)`, `ancre(titre)`, `echapper(texte)` : rendu Markdown des documents. |
 | `graines` | Dossier de contenu semé au démarrage (plans `.md`, `glossaire.json`, `experts.json`). Absent : l'instance démarre vide. |
 | `depotsConnus` | Noms de dépôts proposés dans le carnet. Ce sont des données de l'instance. |
-| `mcp()` | `outils(peutEcrire)` : le catalogue MCP servi, pour les diagnostics. Absent : liste vide. |
+| `extensions()` | Outils MCP propres à l'hôte, branchés sur le noyau : `{ catalogue, outils(ecrivain, moi), noms, appeler(nom, a, moi, ctx), consignes(moi, disponibles) }`. |
 | `selftest()` | `summary()` : rapport de qualification isolée de l'hôte. Absent : « unavailable ». |
 
 Un module qui a besoin d'une entrée absente échoue en le disant. Les modules de recherche lisent aussi
