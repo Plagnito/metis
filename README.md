@@ -10,15 +10,19 @@ Les données restent **chez vous**. Plus tard, `plagnito.com` pourra servir de p
 consulter votre Métis à distance : il ne fera que relayer, l'appareil qui héberge Métis restera chez
 vous.
 
-> ⚠️ **État : version autonome 0.8.0, pas encore publiée sur npm.** Serveur, comptes, jetons,
-> serveur MCP, interface web (publications, glossaire, graphiques, recherche, carnet, projets,
-> accès) et **issues GitHub** fonctionnent ; le Security Center dans l'interface arrive ensuite. En attendant la publication npm,
-> installez depuis une [Release GitHub](https://github.com/Plagnito/metis/releases).
+Node.js **22.13 ou plus récent**, rien d'autre : aucune base à installer, aucune dépendance à
+compiler.
 
 ## Démarrer
 
 ```sh
-npm install -g https://github.com/Plagnito/metis/releases/download/v0.8.0/plagnito-metis-0.8.0.tgz
+npx @plagnito/metis serve
+```
+
+ou, pour avoir la commande `metis` partout :
+
+```sh
+npm install -g @plagnito/metis
 metis serve
 ```
 
@@ -70,9 +74,8 @@ n'écoute que sur cette machine par défaut, et un second serveur sur la même b
 ## Feuille de route
 
 1. **Extraction** (faite) — les modules ont quitté Atlas, qui est devenu un hôte parmi d'autres.
-2. **Serveur autonome** (en cours) — `metis serve`, base locale, comptes et jetons, `/mcp` (fait) ;
-   interface web complète ; **issues GitHub** en tâches de projet, que les agents peuvent traiter
-   dans les limites que vous fixez pour chacun ; Security Center dans l'interface ; publication npm.
+2. **Serveur autonome** (fait) — `metis serve`, base locale, comptes et jetons, `/mcp`, interface
+   web complète, issues GitHub, Security Center, publication npm.
 3. **Passerelle** — `metis link` relie l'appareil à votre compte Atlas ; consultation à distance par
    `plagnito.com`, sans ouvrir de port.
 4. **Documentation et distribution.**
@@ -99,7 +102,7 @@ n'écoute que sur cette machine par défaut, et un second serveur sur la même b
 | `metis-access-fence`, `metis-reading`, `metis-app-permissions` | Droits de lecture calculés à chaque requête, lecture paginée, permissions par application cliente. |
 | `metisnexus` | Canaux et messages entre agents. Requis par le contrôle d'accès ; hors de l'interface de la première version autonome. |
 | `web/*-tools` | Les définitions d'outils MCP de ces domaines (schémas d'entrée, annotations), dont le carnet. |
-| `metis-securite` (+ `-engine`, `-pilotage`, `-differential`, `-report`) | **Security Center** : inventaire des dépôts GitHub de l'instance (déclarés ou synchronisés), plan d'audit quotidien par un agent, failles, preuves, revalidations, contrôles préventifs. Aucun inventaire livré : une instance neuve démarre vide. Réservé au propriétaire. |
+| `metis-securite` (+ `-engine`, `-pilotage`, `-differential`, `-report`) | **Security Center** (page `/metis/securite` pour le propriétaire) : inventaire des dépôts GitHub de l'instance (déclarés ou synchronisés), plan d'audit quotidien par un agent, failles, preuves, revalidations, contrôles préventifs. Aucun inventaire livré : une instance neuve démarre vide. Réservé au propriétaire. |
 | `web/metis-mcp` | Le **noyau du serveur MCP** : catalogue d'outils selon le rôle (`catalogueDe`), aiguillage d'un appel (`appeler`), consignes d'initialisation (`instructions`). Le transport HTTP et l'authentification restent chez l'hôte. |
 | `tools/metis-context/bridge.cjs` | Pont portable côté client, copié dans le dépôt de travail (`.metis/bridge.cjs`). |
 

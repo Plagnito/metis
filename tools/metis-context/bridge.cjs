@@ -126,7 +126,10 @@ function install(root, options) {
   if (harnesses.includes('claude')) managed(root, 'CLAUDE.md', '@AGENTS.md');
   if (harnesses.includes('opencode')) {
     managed(root, '.opencode/commands/reprise-metis.md', 'Reprends le projet de .metis/project.json. Inspecte Git avec node .metis/bridge.cjs inspect puis appelle projets_ouvrir. Objectif : $ARGUMENTS. Respecte le bail et les critères de validation.');
-    generated(root, '.metis/adapters/opencode.example.json', JSON.stringify({ $schema: 'https://opencode.ai/config.json', mcp: { servers: { metis: { type: 'remote', url: 'https://plagnito.com/mcp' } } } }, null, 2) + '\n');
+    // L'adresse du MCP vient de l'instance (sortie de projets_adaptateur), sinon de --mcp-url,
+    // sinon d'un Métis local par défaut : le pont tourne chez le client, sans connaître l'hôte.
+    const mcpUrl = adapter?.remote_configuration?.mcp?.servers?.metis?.url || options.mcp_url || 'http://127.0.0.1:4747/mcp';
+    generated(root, '.metis/adapters/opencode.example.json', JSON.stringify({ $schema: 'https://opencode.ai/config.json', mcp: { servers: { metis: { type: 'remote', url: mcpUrl } } } }, null, 2) + '\n');
   }
   if (fs.realpathSync(__filename) !== path.resolve(root,'.metis/bridge.cjs')) generated(root, '.metis/bridge.cjs', fs.readFileSync(__filename));
   return { installed: true, project_id: m.project_id, harnesses, global_configuration_changed: false, oauth: 'Use native harness sign-in; no credential was read or copied', manifest_sha256: sha(fs.readFileSync(location)) };

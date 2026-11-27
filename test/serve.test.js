@@ -143,6 +143,18 @@ let serveur;
     assert.equal(regle.status, 303);
     assert.match(decodeURIComponent(regle.headers.get('location')), /claude-code.*mainteneur/);
     assert.match(await (await get('/metis/github')).text(), /<code>claude-code<\/code><\/td><td>mainteneur/);
+    // Security Center : la page, son état JSON (rafraîchi par fetch, permis par la CSP) et son script.
+    const sc = await get('/metis/securite');
+    assert.equal(sc.status, 200);
+    assert.match(await sc.text(), /Security Center/);
+    assert.match(sc.headers.get('content-security-policy'), /connect-src 'self'/);
+    const etat = await get('/metis/securite/etat.json');
+    assert.equal(etat.status, 200);
+    assert.equal(typeof (await etat.json()), 'object');
+    const script = await get('/metis/securite.js');
+    assert.equal(script.status, 200);
+    assert.match(script.headers.get('content-type'), /javascript/);
+    assert.match(await (await get('/metis')).text(), /href="\/metis\/securite"/);
     const sortie = await fetch(B + '/deconnexion', { method: 'POST', redirect: 'manual', headers: { Cookie: cookie, Origin: B } });
     assert.equal(sortie.status, 303);
     assert.equal((await get('/metis')).status, 302, 'la session fermée ne sert plus');
