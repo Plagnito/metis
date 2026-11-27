@@ -10,16 +10,15 @@ Les données restent **chez vous**. Plus tard, `plagnito.com` pourra servir de p
 consulter votre Métis à distance : il ne fera que relayer, l'appareil qui héberge Métis restera chez
 vous.
 
-> ⚠️ **État : version autonome 0.7.0, pas encore publiée sur npm.** Serveur, comptes, jetons,
-> serveur MCP et interface web (publications, glossaire, graphiques, recherche, carnet, projets,
-> accès) fonctionnent ; l'intégration des issues GitHub et le Security Center dans l'interface
-> arrivent dans les prochaines versions. En attendant la publication npm,
+> ⚠️ **État : version autonome 0.8.0, pas encore publiée sur npm.** Serveur, comptes, jetons,
+> serveur MCP, interface web (publications, glossaire, graphiques, recherche, carnet, projets,
+> accès) et **issues GitHub** fonctionnent ; le Security Center dans l'interface arrive ensuite. En attendant la publication npm,
 > installez depuis une [Release GitHub](https://github.com/Plagnito/metis/releases).
 
 ## Démarrer
 
 ```sh
-npm install -g https://github.com/Plagnito/metis/releases/download/v0.7.0/plagnito-metis-0.7.0.tgz
+npm install -g https://github.com/Plagnito/metis/releases/download/v0.8.0/plagnito-metis-0.8.0.tgz
 metis serve
 ```
 
@@ -40,8 +39,30 @@ pont `metis mcp`, avec le jeton dans la variable `METIS_JETON`.
 | `metis lien` | Lien de connexion à l'interface, à usage unique (15 min). `--pseudo NOM` pour un membre. Un lien est aussi affiché à chaque démarrage. |
 | `metis compte --pseudo NOM` | Crée un compte membre ; le propriétaire lui donne l'accès (lecteur ou éditeur) dans l'interface. |
 | `metis jeton --client NOM` | Crée un jeton pour un agent (`claude-code`, `codex`, `equipe-ci`…). Chaque client peut recevoir ses propres limites. |
+| `metis agent --client NOM --github PRESET` | Limites GitHub d'un agent : `lecture` (défaut), `contributeur`, `mainteneur` ; `--depots a/b,c/d` pour n'ouvrir que certains dépôts. |
 | `metis jetons` / `metis revoquer ID` | Liste les jetons, en révoque un : il ne passe plus dès l'appel suivant. |
 | `metis mcp` | Pont MCP stdio vers le serveur (`--url`, `--jeton` ou `METIS_JETON`). |
+
+## Issues GitHub
+
+Un projet Métis peut **suivre un dépôt GitHub** (page *Issues GitHub* ou outil `github_suivre_depot`).
+La synchronisation fait de chaque issue ouverte une **tâche du projet** : vos agents la reprennent
+avec les sessions, critères, preuves et la reprise de travail des projets ; fermée sur GitHub, la
+tâche se clôt aussi.
+
+Les agents peuvent agir sur GitHub — commenter, lier la pull request qui corrige, fermer, rouvrir,
+étiqueter, assigner, créer une issue — **chacun dans les limites que vous lui fixez** :
+
+| Préréglage | L'agent peut |
+|---|---|
+| `lecture` (par défaut) | lire les issues et leurs commentaires |
+| `contributeur` | lire, commenter, lier une PR |
+| `mainteneur` | tout |
+
+Les limites se règlent par agent (le client de son jeton), dans l'interface ou avec `metis agent` ;
+aucun outil MCP ne peut les modifier. Toute écriture sur GitHub est inscrite dans un journal
+immuable. Le jeton GitHub se donne par `METIS_GITHUB_TOKEN` (droits « Issues » sur les seuls
+dépôts concernés) ; sans lui, seuls les dépôts publics se lisent et rien n'est écrit.
 
 Les données vivent dans `~/.metis` (ou `METIS_DONNEES`) : une base SQLite, rien d'autre. Le serveur
 n'écoute que sur cette machine par défaut, et un second serveur sur la même base est refusé.

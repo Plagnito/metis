@@ -8,6 +8,8 @@
 //    metis compte  --pseudo NOM [--donnees DOSSIER]       crée un compte membre
 //    metis jeton   [--client NOM] [--donnees DOSSIER]     crée un jeton d'accès (montré une fois)
 //    metis jetons  [--donnees DOSSIER]                    liste les jetons
+//    metis agent   --client NOM [--github lecture|contributeur|mainteneur] [--depots a/b,c/d] [--pseudo NOM]
+//                                                         limites GitHub d'un agent (sans --github : les affiche)
 //    metis revoquer <id> [--donnees DOSSIER]              révoque un jeton
 //    metis mcp     [--url URL] [--jeton JETON]            pont MCP stdio vers un Métis (local par défaut)
 //    metis version | metis aide
@@ -45,6 +47,8 @@ const AIDE = `Métis ${PAQUET.version} — recherche, projets et collaboration d
   metis compte     crée un compte membre (--pseudo NOM) ; donnez-lui l'accès dans l'interface
   metis jeton      crée un jeton d'accès pour un agent (--client claude-code)
   metis jetons     liste les jetons
+  metis agent      limites GitHub d'un agent : --client NOM --github lecture|contributeur|mainteneur
+                   (--depots a/b,c/d pour n'ouvrir que ces dépôts ; sans --github : affiche ses limites)
   metis revoquer ID  révoque un jeton
   metis mcp        pont MCP stdio (--url http://127.0.0.1:4747/mcp, --jeton ou METIS_JETON)
   metis version
@@ -135,6 +139,24 @@ function jetons(o) {
   });
 }
 
+function agent(o) {
+  if (!o.client || o.client === true) throw new Error('Usage : metis agent --client NOM [--github lecture|contributeur|mainteneur] [--depots a/b,c/d] [--pseudo NOM]');
+  avecInstance(o, (instance) => {
+    const G = require('../lib/modules/metis-github');
+    const proprio = instance.proprietaire();
+    if (!proprio) throw new Error('Aucune instance ici : lancez d’abord « metis serve ».');
+    const c = o.pseudo && o.pseudo !== true ? instance.comptes.compteParPseudo(String(o.pseudo)) : proprio;
+    if (!c) throw new Error('Aucun compte « ' + o.pseudo + ' ».');
+    if (o.github && o.github !== true) {
+      const depots = o.depots && o.depots !== true ? String(o.depots).split(',').map((x) => x.trim()).filter(Boolean) : null;
+      G.fixerDroits(proprio.id, { compte: c.id, client: String(o.client), preset: String(o.github), depots });
+    }
+    const d = G.droits(c.id, String(o.client));
+    process.stdout.write('Agent « ' + o.client + ' » de ' + c.pseudo + ' : ' + d.preset + (d.regle ? '' : ' (jamais réglé)') + ' — peut : ' + [...d.actions].join(', ')
+      + (d.depots ? ' — dépôts : ' + d.depots.join(', ') : ' — tous les dépôts suivis') + '\n');
+  });
+}
+
 function revoquer(o) {
   const id = o._[1];
   if (!id) throw new Error('Usage : metis revoquer <id> (metis jetons donne les identifiants).');
@@ -151,6 +173,7 @@ async function principal(argv) {
     case 'jeton': return jeton(o);
     case 'jetons': return jetons(o);
     case 'revoquer': return revoquer(o);
+    case 'agent': return agent(o);
     case 'mcp': return require('../lib/serveur/stdio').pont({ url: o.url, jeton: o.jeton });
     case 'version': case '--version': case '-v': return process.stdout.write(PAQUET.version + '\n');
     case 'aide': case '--help': case '-h': case 'help': return process.stdout.write(AIDE);

@@ -133,6 +133,16 @@ let serveur;
     assert.equal((await poster(null)).status, 404, 'formulaire sans origine refusé');
     assert.equal((await poster(B)).status, 303);
     assert.match(await (await get('/metis/carnet')).text(), /Depuis le navigateur/);
+    // Issues GitHub : la page, et les limites d'agent réglées par la commande ou par le formulaire.
+    const gh = await (await get('/metis/github')).text();
+    assert.match(gh, /Issues GitHub/);
+    assert.match(gh, /Limites des agents/);
+    const agent = spawnSync(process.execPath, [BIN, 'agent', '--client', 'codex', '--github', 'contributeur'], { env, encoding: 'utf8' });
+    assert.match(agent.stdout, /« codex » de proprio : contributeur — peut : lire, commenter, lier_pr/, agent.stdout + agent.stderr);
+    const regle = await fetch(B + '/metis/github/droits', { method: 'POST', redirect: 'manual', headers: { Cookie: cookie, Origin: B, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'pseudo=proprio&client=claude-code&preset=mainteneur&depots=' });
+    assert.equal(regle.status, 303);
+    assert.match(decodeURIComponent(regle.headers.get('location')), /claude-code.*mainteneur/);
+    assert.match(await (await get('/metis/github')).text(), /<code>claude-code<\/code><\/td><td>mainteneur/);
     const sortie = await fetch(B + '/deconnexion', { method: 'POST', redirect: 'manual', headers: { Cookie: cookie, Origin: B } });
     assert.equal(sortie.status, 303);
     assert.equal((await get('/metis')).status, 302, 'la session fermée ne sert plus');
