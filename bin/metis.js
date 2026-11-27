@@ -12,6 +12,7 @@
 //                                                         limites GitHub d'un agent (sans --github : les affiche)
 //    metis revoquer <id> [--donnees DOSSIER]              révoque un jeton
 //    metis mcp     [--url URL] [--jeton JETON]            pont MCP stdio vers un Métis (local par défaut)
+//    metis link    [--relais URL] [--nom NOM] [--retirer] relie l'instance au relais plagnito.com (accès à distance)
 //    metis version | metis aide
 // =============================================================================
 
@@ -50,6 +51,8 @@ const AIDE = `Métis ${PAQUET.version} — recherche, projets et collaboration d
   metis agent      limites GitHub d'un agent : --client NOM --github lecture|contributeur|mainteneur
                    (--depots a/b,c/d pour n'ouvrir que ces dépôts ; sans --github : affiche ses limites)
   metis revoquer ID  révoque un jeton
+  metis link       relie l'instance à votre compte sur plagnito.com pour la joindre à distance
+                   (--nom pour la nommer, --retirer pour défaire le lien)
   metis mcp        pont MCP stdio (--url http://127.0.0.1:4747/mcp, --jeton ou METIS_JETON)
   metis version
 `;
@@ -92,7 +95,14 @@ async function serve(o) {
   const proprio = instance.proprietaire();
   process.stdout.write('  Interface (lien à usage unique, 15 min) : ' + base + '/connexion?code=' + instance.creerLien(proprio.id) + '\n');
   if (premier) process.stdout.write('\n  Premier lancement : propriétaire « ' + premier.pseudo + ' » créé.' + consignesConnexion(base + '/mcp', premier.jeton));
-  const arreter = async () => { await s.fermer(); instance.fermer(); process.exit(0); };
+  // Accès à distance : si l'instance est reliée (metis link), elle ouvre sa ligne vers le relais.
+  let tunnel = null;
+  const l = require('../lib/relais/appairage').lien(instance.db);
+  if (l && !o['sans-relais']) {
+    tunnel = require('../lib/relais/tunnel').demarrer({ relais: l.relais, instance: l.instance, secret: l.secret, portLocal: s.port, journal: (t) => process.stdout.write('  ' + t + '\n') });
+    process.stdout.write('  À distance : ' + l.relais + '/chez-soi/' + l.instance + '/metis  ·  MCP : ' + l.relais + '/chez-soi/' + l.instance + '/mcp\n');
+  }
+  const arreter = async () => { if (tunnel) tunnel.arreter(); await s.fermer(); instance.fermer(); process.exit(0); };
   process.once('SIGINT', arreter);
   process.once('SIGTERM', arreter);
 }
@@ -157,6 +167,32 @@ function agent(o) {
   });
 }
 
+async function link(o) {
+  const A = require('../lib/relais/appairage');
+  const { ouvrir } = require('../lib/defaut/instance');
+  const instance = ouvrir({ dossier: o.donnees, verrou: false });
+  try {
+    if (o.retirer) {
+      const l = A.lien(instance.db);
+      A.oublier(instance.db);
+      process.stdout.write(l ? 'Lien retiré de cette instance. Supprimez-la aussi sur ' + l.relais + '/chez-soi pour fermer l’accès côté relais.\n' : 'Cette instance n’était reliée à aucun relais.\n');
+      return;
+    }
+    if (!instance.proprietaire()) throw new Error('Aucune instance ici : lancez d’abord « metis serve ».');
+    const relais = String(o.relais && o.relais !== true ? o.relais : A.RELAIS_DEFAUT).replace(/\/+$/, '');
+    const nom = String(o.nom && o.nom !== true ? o.nom : instance.proprietaire().pseudo + ' — Métis').slice(0, 60);
+    const d = await A.demander(relais, nom);
+    process.stdout.write('Pour relier cette instance (« ' + nom + ' ») à votre compte, ouvrez :\n\n  ' + d.confirmer + '\n\n'
+      + 'Le relais ' + new URL(relais).host + ' verra passer les échanges entre vous (ou vos agents) et cette instance ;\n'
+      + 'il ne les garde pas. Les données restent sur cette machine. En attente de la confirmation (10 min)…\n');
+    const r = await A.attendre(relais, d.attente);
+    A.enregistrer(instance.db, relais, r);
+    process.stdout.write('\nReliée au compte « ' + r.proprietaire.pseudo + ' ». Au prochain « metis serve » :\n'
+      + '  interface : ' + relais + '/chez-soi/' + r.instance + '/metis\n  MCP       : ' + relais + '/chez-soi/' + r.instance + '/mcp\n'
+      + 'Invitez d’autres comptes depuis ' + relais + '/chez-soi.\n');
+  } finally { instance.fermer(); }
+}
+
 function revoquer(o) {
   const id = o._[1];
   if (!id) throw new Error('Usage : metis revoquer <id> (metis jetons donne les identifiants).');
@@ -174,6 +210,7 @@ async function principal(argv) {
     case 'jetons': return jetons(o);
     case 'revoquer': return revoquer(o);
     case 'agent': return agent(o);
+    case 'link': return link(o);
     case 'mcp': return require('../lib/serveur/stdio').pont({ url: o.url, jeton: o.jeton });
     case 'version': case '--version': case '-v': return process.stdout.write(PAQUET.version + '\n');
     case 'aide': case '--help': case '-h': case 'help': return process.stdout.write(AIDE);

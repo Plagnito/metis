@@ -6,9 +6,8 @@ Documents versionnés, graphiques et schémas dessinés par le serveur, glossair
 projets, collaboration entre agents… et un serveur MCP pour que Claude, ChatGPT ou un modèle local
 s'en servent.
 
-Les données restent **chez vous**. Plus tard, `plagnito.com` pourra servir de passerelle pour
-consulter votre Métis à distance : il ne fera que relayer, l'appareil qui héberge Métis restera chez
-vous.
+Les données restent **chez vous**. Pour le joindre à distance sans ouvrir de port, `plagnito.com`
+sert de relais : il fait passer les échanges, il ne les garde pas (voir *Accès à distance*).
 
 Node.js **22.13 ou plus récent**, rien d'autre : aucune base à installer, aucune dépendance à
 compiler.
@@ -45,7 +44,28 @@ pont `metis mcp`, avec le jeton dans la variable `METIS_JETON`.
 | `metis jeton --client NOM` | Crée un jeton pour un agent (`claude-code`, `codex`, `equipe-ci`…). Chaque client peut recevoir ses propres limites. |
 | `metis agent --client NOM --github PRESET` | Limites GitHub d'un agent : `lecture` (défaut), `contributeur`, `mainteneur` ; `--depots a/b,c/d` pour n'ouvrir que certains dépôts. |
 | `metis jetons` / `metis revoquer ID` | Liste les jetons, en révoque un : il ne passe plus dès l'appel suivant. |
+| `metis link` | Relie l'instance à votre compte sur plagnito.com pour la joindre à distance (`--retirer` pour défaire le lien). |
 | `metis mcp` | Pont MCP stdio vers le serveur (`--url`, `--jeton` ou `METIS_JETON`). |
+
+## Accès à distance
+
+```sh
+metis link
+```
+
+relie l'instance à votre compte sur plagnito.com : la commande affiche une adresse où vous
+confirmez, connecté, puis l'instance ouvre d'elle-même une **connexion sortante** vers le relais à
+chaque `metis serve` (aucun port à ouvrir, la box n'y voit qu'une connexion web). Vous la joignez
+ensuite à distance :
+
+- **dans le navigateur** : `https://plagnito.com/chez-soi/<instance>/metis` ;
+- **par vos agents** : `https://plagnito.com/chez-soi/<instance>/mcp`, avec la connexion OAuth de
+  votre compte (le jeton obtenu ne vaut que pour cette instance).
+
+Sur `https://plagnito.com/chez-soi`, vous invitez d'autres comptes (lecteur ou éditeur) ; ils voient
+l'instance une fois l'invitation acceptée. Le relais **voit passer** les échanges, **ne les garde
+pas**, et n'exécute aucun script de l'instance. `metis link --retirer` défait le lien ;
+`metis serve --sans-relais` démarre sans ouvrir la ligne.
 
 ## Issues GitHub
 
@@ -76,8 +96,8 @@ n'écoute que sur cette machine par défaut, et un second serveur sur la même b
 1. **Extraction** (faite) — les modules ont quitté Atlas, qui est devenu un hôte parmi d'autres.
 2. **Serveur autonome** (fait) — `metis serve`, base locale, comptes et jetons, `/mcp`, interface
    web complète, issues GitHub, Security Center, publication npm.
-3. **Passerelle** — `metis link` relie l'appareil à votre compte Atlas ; consultation à distance par
-   `plagnito.com`, sans ouvrir de port.
+3. **Passerelle** (fait) — `metis link` relie l'appareil à votre compte Atlas ; consultation et
+   MCP à distance par `plagnito.com/chez-soi`, sans ouvrir de port.
 4. **Documentation et distribution.**
 
 ## Ce qui est déjà ici
